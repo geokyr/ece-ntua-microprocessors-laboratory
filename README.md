@@ -1,4 +1,4 @@
 microlab
 -----
 
-Repository for the Microprocessor Systems Laboratory course.
+Repository for the Microprocessors Laboratory course.
