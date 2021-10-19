@@ -1,0 +1,45 @@
+START:
+    LXI B,03E8H     ; move 1000 to BC for 1 second delay
+    LDA 2000H       ; read input
+    ANI 0FH         ; keep 4 LSBs
+    INR A           ; increase A to store x+1
+    MOV E,A         ; move x+1 to E
+RESTART:
+    MVI A,00H       ; start counting upwards from 0
+UP:
+    CALL MSBCHECK   ; call MSB check routine
+    CMA             ; complement A because of the LED's negative logic
+    STA 3000H       ; output A'
+    CALL DELB       ; call the 1 second delay routine
+    CMA             ; restore A
+    INR A           ; increase A
+    CMP E           ; compare A with x
+    JNZ UP          ; if A is not equal(less) than x keep counting
+    MOV A,E         ; keep 4 LSBs
+DOWN:
+    CALL MSBCHECK   ; call MSB check routine
+    DCR A           ; decrement A to count down
+    CMA             ; complement A because of the LED's negative logic
+    STA 3000H       ; output A'
+    CALL DELB       ; call the 1 second delay routine
+    CMA             ; restore A
+    CPI 00H         ; compare A with 0
+    JNZ DOWN        ; if A is not equal(greater) than 0 keep counting
+    LDA 2000H       ; read input to check for x change
+    ANI 0FH         ; keep 4 lsbs
+    INR A           ; increase A
+    CMP E           ; compare with x
+    JNZ CHANGE      ; if x has changed, fix E
+    JMP RESTART     ; restart the counting
+CHANGE:
+    MOV E,A         ; move new x to E
+    JMP RESTART     ; restart the counting
+MSBCHECK:
+    PUSH PSW        ; push A and flags
+LOOPER:
+    LDA 2000H       ; read input
+    RAL             ; rotate left to check MSB
+    JNC LOOPER      ; if MSB is 0 repeat
+    POP PSW         ; pop A and flags
+    RET
+END

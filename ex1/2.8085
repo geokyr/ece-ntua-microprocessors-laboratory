@@ -1,0 +1,44 @@
+    IN 10H
+START:              ; max value = 16*F + F = FF
+    CALL KIND       ; read x from the keyboard
+    RLC
+    RLC
+    RLC
+    RLC
+    MOV B,A         ; move 16*x to B
+    CALL KIND       ; read y from the keyboard
+    ADD B           ; A = 16*x + y
+    LXI H,0A02H     ; initialise address for the displays
+    MVI C,00H       ; initialise c to count hundreds
+DIV1:
+    INR C           ; increment the hundreds counter
+    SUI 64H         ; subtract 100 from A
+    JNC DIV1        ; if A isn't negative repeat
+    DCR C           ; decrement C to fix the number of the hundreds
+    MOV M,C         ; store hundreds to 0A02H
+    ADI 64H         ; add 100 back to restore A to get tens
+    MVI C,00H       ; reset c to count tens
+DIV2:
+    INR C           ; increment the tens counter
+    SUI 0AH         ; subtract 10 from A
+    JNC DIV2        ; if A isn't negative repeat
+    DCR C           ; decrement C to fix the number of the hundreds
+    DCX H           ; decrement memory pointer
+    MOV M,C         ; store tens to 0A01H
+    ADI 0AH         ; add 10 back to restore A to get ones
+    DCX H           ; decrement memory pointer
+    MOV M,A         ; store ones in 0A00H
+    
+    LXI H,0A05H     ; initialise address for the empty displays
+    MVI M,10H       ; load the space symbol
+    DCX H           ; decrement memory pointer
+    MVI M,10H       ; load the space symbol
+    DCX H           ; decrement memory pointer
+    MVI M,10H       ; load the space symbol
+
+    LXI D,0A00H     ; load D with the memory address
+    CALL STDM       ; call the routine to prepare the display
+    CALL DCD        ; output to the 7-segment displays
+    
+    JMP START       ; repeat
+END

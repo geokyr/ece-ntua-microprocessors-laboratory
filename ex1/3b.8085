@@ -1,0 +1,77 @@
+START:
+    MVI A,01H       ; initiliaze A to LSB LED
+    MVI D,01H       ; initiliaze D to LSB LED
+    LXI B,01F4H     ; move 500 to BC for 0.5 second delay
+    CMA             ; complement A because of the LED's negative logic
+    STA 3000H       ; output A'
+    CMA             ; restore A
+    CALL DELB       ; call the 0.5 second delay routine
+    CALL MSBCHECK   ; call MSB check routine
+WAIT:
+    CALL LSBCHECK   ; call LSB check routine
+    MOV A,E         ; move LSB to A
+    CPI 00H         ; compare with 0
+    JZ WAIT         ; loop
+TOLEFT:
+    MOV H,E         ; update H with last LSB
+    MOV A,D         ; restore A
+    CPI 80H         ; compare with far left position
+    JZ SWITCHR      ; if the train is far left change direction
+    RLC             ; move the train left
+    CMA             ; complement A because of the LED's negative logic
+    STA 3000H       ; output A'
+    CMA             ; restore A
+    CALL DELB       ; call the 0.5 second delay routine
+    CALL MSBCHECK   ; call MSB check routine
+    CALL LSBCHECK   ; call LSB check routine
+    MOV D,A         ; backup A
+    MOV A,E         ; move LSB to A
+    CPI 00H         ; compare with 0
+    JNZ TOLEFT      ; if it's equal to 0 change direction
+    CMP H           ; compare with last LSB
+    JZ TOLEFT       ; if it's same as last LSB don't change direction
+TORIGHT:
+    MOV H,E         ; update H with last LSB
+    MOV A,D         ; restore A
+    CPI 01H         ; compare with far right position
+    JZ SWITCHL      ; if the train is far right change direction
+    RRC             ; move the train right
+    CMA             ; complement A because of the LED's negative logic
+    STA 3000H       ; output A'
+    CMA             ; restore A
+    CALL DELB       ; call the 0.5 second delay routine
+    CALL MSBCHECK   ; call MSB check routine
+    CALL LSBCHECK   ; call LSB check routine
+    MOV D,A         ; backup A
+    MOV A,E         ; move LSB to A
+    CPI 00H         ; compare with 0
+    JNZ TORIGHT     ; if it's equal to 0 change direction
+    CMP H           ; compare with last LSB
+    JZ TORIGHT      ; if it's same as last LSB don't change direction
+    JMP TOLEFT      ; change direction
+    
+MSBCHECK:
+    PUSH PSW        ; push A and flags
+LOOPER:
+    LDA 2000H       ; read input
+    RAL             ; rotate left to check MSB
+    JNC LOOPER      ; if MSB is 0 repeat
+    POP PSW         ; pop A and flags
+    RET
+
+LSBCHECK:
+    PUSH PSW        ; push A and the flags
+    LDA 2000H       ; read input
+    ANI 01H         ; isolate the lsb of A
+    MOV E,A         ; move LSB to E
+    POP PSW         ; pop A and the flags
+    RET
+
+SWITCHR:
+    CALL DELB       ; call the 0.5 second delay routine
+    JMP TORIGHT     ; change direction
+    
+SWITCHL:
+    CALL DELB       ; call the 0.5 second delay routine
+    JMP TOLEFT      ; change direction
+END
