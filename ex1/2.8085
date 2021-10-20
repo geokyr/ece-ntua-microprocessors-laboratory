@@ -1,12 +1,20 @@
     IN 10H
 START:              ; max value = 16*F + F = FF
     CALL KIND       ; read x from the keyboard
+    CPI 00H         ; if x < 0 read again
+    JC START
+    CPI 10H         ; if x > F read again
+    JNC START
     RLC
     RLC
     RLC
     RLC
     MOV B,A         ; move 16*x to B
     CALL KIND       ; read y from the keyboard
+    CPI 00H         ; if y < 0 read again
+    JC START
+    CPI 10H         ; if y > F read again
+    JNC START
     ADD B           ; A = 16*x + y
     LXI H,0A02H     ; initialise address for the displays
     MVI C,00H       ; initialise c to count hundreds

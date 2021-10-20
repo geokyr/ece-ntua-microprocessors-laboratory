@@ -8,7 +8,7 @@ RESTART:
     MVI A,00H       ; start counting upwards from 0
 UP:
     CALL MSBCHECK   ; call MSB check routine
-    CMA             ; complement A because of the LED's negative logic
+    CMA             ; complement A because of LED's negative logic
     STA 3000H       ; output A'
     CALL DELB       ; call the 1 second delay routine
     CMA             ; restore A
@@ -19,7 +19,7 @@ UP:
 DOWN:
     CALL MSBCHECK   ; call MSB check routine
     DCR A           ; decrement A to count down
-    CMA             ; complement A because of the LED's negative logic
+    CMA             ; complement A because of LED's negative logic
     STA 3000H       ; output A'
     CALL DELB       ; call the 1 second delay routine
     CMA             ; restore A

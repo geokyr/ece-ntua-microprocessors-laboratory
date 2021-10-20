@@ -2,7 +2,7 @@ START:
     MVI A,01H       ; initiliaze A to LSB LED
     MVI D,01H       ; initiliaze D to LSB LED
     LXI B,01F4H     ; move 500 to BC for 0.5 second delay
-    CMA             ; complement A because of the LED's negative logic
+    CMA             ; complement A because of LED's negative logic
     STA 3000H       ; output A'
     CMA             ; restore A
     CALL DELB       ; call the 0.5 second delay routine
@@ -18,7 +18,7 @@ TOLEFT:
     CPI 80H         ; compare with far left position
     JZ SWITCHR      ; if the train is far left change direction
     RLC             ; move the train left
-    CMA             ; complement A because of the LED's negative logic
+    CMA             ; complement A because of LED's negative logic
     STA 3000H       ; output A'
     CMA             ; restore A
     CALL DELB       ; call the 0.5 second delay routine
@@ -36,7 +36,7 @@ TORIGHT:
     CPI 01H         ; compare with far right position
     JZ SWITCHL      ; if the train is far right change direction
     RRC             ; move the train right
-    CMA             ; complement A because of the LED's negative logic
+    CMA             ; complement A because of LED's negative logic
     STA 3000H       ; output A'
     CMA             ; restore A
     CALL DELB       ; call the 0.5 second delay routine
