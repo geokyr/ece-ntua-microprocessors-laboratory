@@ -16,8 +16,8 @@ START:              ; max value = 16*F + F = FF
     CPI 10H         ; if y > F read again
     JNC START
     ADD B           ; A = 16*x + y
-    LXI H,0A02H     ; initialise address for the displays
-    MVI C,00H       ; initialise c to count hundreds
+    LXI H,0A02H     ; initialize address for the displays
+    MVI C,00H       ; initialize c to count hundreds
 DIV1:
     INR C           ; increment the hundreds counter
     SUI 64H         ; subtract 100 from A
@@ -37,7 +37,7 @@ DIV2:
     DCX H           ; decrement memory pointer
     MOV M,A         ; store ones in 0A00H
     
-    LXI H,0A05H     ; initialise address for the empty displays
+    LXI H,0A05H     ; initialize address for the empty displays
     MVI M,10H       ; load the space symbol
     DCX H           ; decrement memory pointer
     MVI M,10H       ; load the space symbol

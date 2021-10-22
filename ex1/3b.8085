@@ -15,7 +15,7 @@ WAIT:
 TOLEFT:
     MOV H,E         ; update H with last LSB
     MOV A,D         ; restore A
-    CPI 80H         ; compare with far left position
+    CPI 80H         ; compare with far-left position
     JZ SWITCHR      ; if the train is far left change direction
     RLC             ; move the train left
     CMA             ; complement A because of LED's negative logic
@@ -33,7 +33,7 @@ TOLEFT:
 TORIGHT:
     MOV H,E         ; update H with last LSB
     MOV A,D         ; restore A
-    CPI 01H         ; compare with far right position
+    CPI 01H         ; compare with far-right position
     JZ SWITCHL      ; if the train is far right change direction
     RRC             ; move the train right
     CMA             ; complement A because of LED's negative logic

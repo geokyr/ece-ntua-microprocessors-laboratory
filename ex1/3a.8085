@@ -10,8 +10,8 @@ START:
     CALL WAITLSB    ; call wait LSB check routine
 TOLEFT:
     MOV A,D         ; restore A
-    CPI 80H         ; compare with far left position
-    JZ SWITCHR      ; if the train is far left change direction
+    CPI 80H         ; compare with far-left position
+    JZ SWITCHR      ; if the train is far-left change direction
     RLC             ; move the train left
     CMA             ; complement A because of LED's negative logic
     STA 3000H       ; output A' 
@@ -26,8 +26,8 @@ TOLEFT:
     CALL WAITLSB    ; call wait LSB check routine
 TORIGHT:
     MOV A,D         ; restore A
-    CPI 01H         ; compare with far right position
-    JZ SWITCHL      ; if the train is far right change direction
+    CPI 01H         ; compare with far-right position
+    JZ SWITCHL      ; if the train is far-right change direction
     RRC             ; move the train right
     CMA             ; complement A because of LED's negative logic
     STA 3000H       ; output A' 

@@ -25,14 +25,10 @@ DOWN:
     CMA             ; restore A
     CPI 00H         ; compare A with 0
     JNZ DOWN        ; if A is not equal(greater) than 0 keep counting
-    LDA 2000H       ; read input to check for x change
-    ANI 0FH         ; keep 4 lsbs
+    LDA 2000H       ; read input for new x
+    ANI 0FH         ; keep 4 LSBs
     INR A           ; increase A
-    CMP E           ; compare with x
-    JNZ CHANGE      ; if x has changed, fix E
-    JMP RESTART     ; restart the counting
-CHANGE:
-    MOV E,A         ; move new x to E
+    MOV E,A         ; move new x+1 to E
     JMP RESTART     ; restart the counting
 MSBCHECK:
     PUSH PSW        ; push A and flags
