@@ -9,12 +9,14 @@
 .DEF TEMP = r22
 .DEF ANSWER = r23
 
-IO_set: clr r24
+IO_set: 
+        clr r24
         out DDRC, r24   ; input 
         ser r24
         out DDRB, r24   ; output
 
-main:   in A, PINC      ; load input on A
+main:   
+        in A, PINC      ; load input on A
         mov TEMP, A     ; backup input on TEMP
         andi A, 0x01    ; LSB(A) = A
 
