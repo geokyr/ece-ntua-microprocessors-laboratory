@@ -1,7 +1,7 @@
 .include "m16def.inc"
 
-.DEF A = r16 
-.DEF B = r17 
+.DEF A = r16
+.DEF B = r17
 .DEF C = r18
 .DEF D = r19
 .DEF F0 = r20
@@ -9,56 +9,80 @@
 .DEF TEMP = r22
 .DEF ANSWER = r23
 
-IO_set: 
+stack:
+        ldi r24, low(RAMEND)    ; initialize stack pointer
+        out SPL, r24
+        ldi r24, high(RAMEND)
+        out SPH, r24
+IO_set:
         clr r24
-        out DDRC, r24   ; input 
+        out DDRC, r24           ; input from C
         ser r24
-        out DDRB, r24   ; output
+        out DDRB, r24           ; output at B
+main:
+        in A, PINC              ; load input on A
+        mov TEMP, A             ; backup input on TEMP
+        andi A, 0x01            ; LSB(A) = A
 
-main:   
-        in A, PINC      ; load input on A
-        mov TEMP, A     ; backup input on TEMP
-        andi A, 0x01    ; LSB(A) = A
-
-        mov B, TEMP     ; load input on B
+        mov B, TEMP             ; load input on B
         andi B, 0x02
-        lsr B           ; LSB(B) = B
+        lsr B                   ; LSB(B) = B
 
-        mov C, TEMP     ; load input on C
+        mov C, TEMP             ; load input on C
         andi C, 0x04
         lsr C           
-        lsr C           ; LSB(C) = C
+        lsr C                   ; LSB(C) = C
 
-        mov D, TEMP     ; load input on D
+        mov D, TEMP             ; load input on D
         andi D, 0x08
         lsr D
         lsr D           
-        lsr D           ; LSB(D) = D
+        lsr D                   ; LSB(D) = D
 
-        mov TEMP, A     ; TEMP = A
-        com TEMP        ; TEMP = A'
-        and TEMP, B     ; TEMP = A'B
-        mov F0, TEMP    ; F0 = A'B
+        mov TEMP, A             ; TEMP = A
+        com TEMP                ; TEMP = A'
+        and TEMP, B             ; TEMP = A'B
+        mov F0, TEMP            ; F0 = A'B
 
-        mov TEMP, B     ; TEMP = B
-        com TEMP        ; TEMP = B'
-        and TEMP, C     ; TEMP = B'C
-        and TEMP, D     ; TEMP = B'CD
+        mov TEMP, B             ; TEMP = B
+        com TEMP                ; TEMP = B'
+        and TEMP, C             ; TEMP = B'C
+        and TEMP, D             ; TEMP = B'CD
 
-        or F0, TEMP     ; F0 = A'B + B'CD
-        com F0          ; F0 = (A'B + B'CD)'
+        or F0, TEMP             ; F0 = A'B + B'CD
+        com F0                  ; F0 = (A'B + B'CD)'
 
-        mov TEMP, A     ; TEMP = A
-        and TEMP, C     ; TEMP = AC
-        mov F1, TEMP    ; F1 = AC
+        mov TEMP, A             ; TEMP = A
+        and TEMP, C             ; TEMP = AC
+        mov F1, TEMP            ; F1 = AC
 
-        mov TEMP, B     ; TEMP = B
-        or TEMP, D      ; TEMP = B+D
-        and F1, TEMP    ; F1 = (AC)(B+D)
+        mov TEMP, B             ; TEMP = B
+        or TEMP, D              ; TEMP = B+D
+        and F1, TEMP            ; F1 = (AC)(B+D)
         
-        lsl F1          ; move F1 to 2nd LSB
-        mov ANSWER, F1  ; ANSWER = 000000(F1)0
-        or ANSWER, F0   ; ANSWER = 000000(F1)(F0)
-        out PORTB, ANSWER
+        andi F0, 0x01	        ; keep only LSB
+        andi F1, 0x01	        ; keep only LSB
+        lsl F1                  ; move F1 to 2nd LSB
+        mov ANSWER, F1          ; ANSWER = 000000(F1)0
+        or ANSWER, F0           ; ANSWER = 000000(F1)(F0)
+        out PORTB, ANSWER       ; output ANSWER at B
 
-        rjmp main
+        rjmp main               ; restart the program
+
+;    A B C D  F0 F1
+;    0 0 0 0  1  0
+;    0 0 0 1  1  0
+;    0 0 1 0  1  0
+;    0 0 1 1  0  0
+;    0 1 0 0  0  0
+;    0 1 0 1  0  0
+;    0 1 1 0  0  0
+;    0 1 1 1  0  0
+;    1 0 0 0  1  0
+;    1 0 0 1  1  0
+;    1 0 1 0  1  0
+;    1 0 1 1  0  1
+;    1 1 0 0  1  0
+;    1 1 0 1  1  0
+;    1 1 1 0  1  1
+;    1 1 1 1  1  1
