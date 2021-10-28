@@ -12,7 +12,7 @@ int main(void) {
         B = B >> 1;         // shift it to LSB
         C = PINC & 0x04;    // keep 3rd LSB
         C = C >> 2;         // shift it to LSB
-        D = PIND & 0x08;    // keep 4th LSB
+        D = PINC & 0x08;    // keep 4th LSB
         D = D >> 3;         // shift it to LSB
 
         notA = A ^ 0x01;    // complement A
@@ -27,3 +27,23 @@ int main(void) {
         PORTB = answer;     // send answer to output
     }
 }
+
+/* 
+   A B C D  F0 F1
+   0 0 0 0  1  0
+   0 0 0 1  1  0
+   0 0 1 0  1  0
+   0 0 1 1  0  0
+   0 1 0 0  0  0
+   0 1 0 1  0  0
+   0 1 1 0  0  0
+   0 1 1 1  0  0
+   1 0 0 0  1  0
+   1 0 0 1  1  0
+   1 0 1 0  1  0
+   1 0 1 1  0  1
+   1 1 0 0  1  0
+   1 1 0 1  1  0
+   1 1 1 0  1  1
+   1 1 1 1  1  1
+*/
