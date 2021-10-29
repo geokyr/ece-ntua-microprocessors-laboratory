@@ -1,6 +1,6 @@
 START:
-    MVI A,01H       ; initiliaze A to LSB LED
-    MVI D,01H       ; initiliaze D to LSB LED
+    MVI A,01H       ; initialize A to LSB LED
+    MVI D,01H       ; initialize D to LSB LED
     LXI B,01F4H     ; move 500 to BC for 0.5 second delay
     CMA             ; complement A because of LED's negative logic
     STA 3000H       ; output A'
