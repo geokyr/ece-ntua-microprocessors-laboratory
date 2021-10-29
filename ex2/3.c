@@ -1,30 +1,30 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-volatile unsigned char PA, PB, counter, flag = 0x01;
+volatile unsigned char A, B, counter, flag = 0x01;
 
 ISR(INT0_vect) {
-    PA = PINA & 0x04;
-    PB = PINB;
+    A = PINA & 0x04;
+    B = PINB;
 
-    if(PA) {
+    if(A) {
         counter = 0x00;
         for (int i = 0; i < 8; i++) {
-            if(PB & 0x01) {
+            if(B & 0x01) {
                 counter++;
             }
-            PB = PB >> 1;
+            B = B >> 1;
         }
         PORTC = counter;
     }
     else {
         counter = 0x00;
         for (int i = 0; i < 8; i++) {
-            if(PB & 0x01) {
+            if(B & 0x01) {
                 counter = counter << 1;
                 counter++;
             }
-            PB = PB >> 1;
+            B = B >> 1;
         }
         PORTC = counter;
     }
