@@ -35,12 +35,12 @@ ISR1:
     in r26, SREG
     push r26                              ; save SREG
 
+    inc COUNTER                           ; increase INT COUNTER
     in TEMP, PINA                         ; load input to TEMP
     andi TEMP, 0xC0                       ; keep only A7 and A6
     cpi TEMP, 0xC0                        ; check if A7 and A6 are on
     brne EXITINT                          ; if they are not exit
-    
-    inc COUNTER                           ; increase INT COUNTER
+
     out PORTB, COUNTER                    ; display it on PORTB LEDs
 EXITINT:
     pop r26                               ; restore SREG
