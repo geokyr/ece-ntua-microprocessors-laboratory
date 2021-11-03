@@ -46,4 +46,4 @@ EXITINT:
     pop r26                               ; restore SREG
     out SREG, r26
     pop r26                               ; restore r26
-    reti                                  ; return to loop
+    reti                                  ; return and enable INTs
