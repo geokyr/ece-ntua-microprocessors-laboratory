@@ -26,6 +26,7 @@ int main(void) {
               (B | D));             // F1 = (AC)(B+D)
         F1 = F1 << 1;               // shift F1 to 2nd LSB
         answer = F0 + F1;           // add F1 and F0 to get output
+        answer = answer & 0x03;     // keep only the 2 LSBs
         PORTB = answer;             // output answer at B
     }
 }
