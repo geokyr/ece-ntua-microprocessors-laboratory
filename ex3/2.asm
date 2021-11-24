@@ -11,7 +11,7 @@ main:
     ldi r24, low(RAMEND)
     out SPL, r24
     ldi r24, high(RAMEND)
-    out SPL, r24
+    out SPH, r24
 
     ser r24
     out DDRB, r24
