@@ -1,3 +1,5 @@
+.include "m16def.inc"
+
 .org 0x0
     rjmp reset
 .org 0x4
