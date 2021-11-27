@@ -1,5 +1,5 @@
 .DSEG
-_tmp_: .byte 2
+_tmp_: .byte 2					; initialize _tmp_ for RAM
 
 .CSEG
 .include "m16def.inc"
@@ -8,52 +8,52 @@ _tmp_: .byte 2
 rjmp main
 
 main:
-    ldi r24, low(RAMEND)
+    ldi r24, low(RAMEND)		; initialize stack pointer
     out SPL, r24
     ldi r24, high(RAMEND)
     out SPH, r24
 
     ser r24
-    out DDRB, r24
-    out DDRD, r24
+    out DDRB, r24				; set PORTB as output
+    out DDRD, r24				; set PORTD as output
 
     ldi r24, (1 << PC7) | (1 << PC6) | (1 << PC5) | (1 << PC4)
-    out DDRC, r24
+    out DDRC, r24				; set PORTC[7:4] as output
 
 first:
-    rcall scan_keypad_rising_edge_sim
-    clr r20
-    or r20, r24
-    or r20, r25
-    cpi r20, 0
-    breq first
+    rcall scan_keypad_rising_edge_sim ; scan keypad
+    clr r20						; add 2 registers with button values 
+    or r20, r24					; to r20 and check if it is 0
+    or r20, r25					; if it is 0 no button was pressed
+    cpi r20, 0					; so repeat reading
+    breq first					; else, continue
 
-    mov r19, r25
+    mov r19, r25				; store buttons pressed to r19r18
     mov r18, r24
 
-second:
-    rcall scan_keypad_rising_edge_sim
-    clr r20
-    or r20, r24
-    or r20, r25
-    cpi r20, 0
-    breq second
+second:		
+    rcall scan_keypad_rising_edge_sim ; scan keypad
+    clr r20						; add 2 registers with button values 
+    or r20, r24					; to r20 and check if it is 0
+    or r20, r25					; if it is 0 no button was pressed
+    cpi r20, 0					; so repeat reading
+    breq second					; else, continue
 
-    cpi r19, 0x40
-    brne wrong_team
-    cpi r18, 0
-    brne wrong_team
-    cpi r25, 0x40
-    brne wrong_team
-    cpi r24, 0
-    brne wrong_team
+    cpi r19, 0x40				; compare r19r18 to right value 3
+    brne wrong_team				; that is 0x40 on r19 and 0x00 on r18
+    cpi r18, 0					; if any register doesn't have the
+    brne wrong_team				; right value, go to wrong_team
+    cpi r25, 0x40				; since the 2 digits are not the 
+    brne wrong_team				; right ones, else continue to
+    cpi r24, 0					; correct team
+    brne wrong_team				; also, do the same for r25r24
 
 correct_team:
-    rcall lcd_init_sim
-    ldi r24,'W'
-	rcall lcd_data_sim
-	ldi r24,'E'
-	rcall lcd_data_sim
+    rcall lcd_init_sim			; initialize lcd screen
+    ldi r24,'W'					; print the required message 
+	rcall lcd_data_sim			; 'WELCOME 33'
+	ldi r24,'E'					; character by character since
+	rcall lcd_data_sim			; the right buttons were pressed
 	ldi r24,'L'
 	rcall lcd_data_sim
 	ldi r24,'C'
@@ -72,22 +72,22 @@ correct_team:
 	rcall lcd_data_sim
 
     ser r20
-    out PORTB, r20
-    ldi r21, 0x50
+    out PORTB, r20				; turn the LEDs on
+    ldi r21, 0x50				; initialize counter to 80 for delay
 
-    rcall delay_between
+    rcall delay_between			; call 50ms delay routine (4000ms)
 
     clr r20
-    out PORTB, r20
+    out PORTB, r20				; turn LEDs off
 
-    rjmp first
+    rjmp first					; restart from the beginning
 
 wrong_team:
-    rcall lcd_init_sim
-	ldi r24,'A'
-	rcall lcd_data_sim
-	ldi r24,'L'
-	rcall lcd_data_sim
+    rcall lcd_init_sim			; initialize lcd screen
+	ldi r24,'A'					; print the required message 
+	rcall lcd_data_sim			; 'ALARM ON'
+	ldi r24,'L'					; character by character since
+	rcall lcd_data_sim			; wrong buttons were pressed
 	ldi r24,'A'
 	rcall lcd_data_sim
 	ldi r24,'R'
@@ -101,43 +101,43 @@ wrong_team:
 	ldi r24,'N'
 	rcall lcd_data_sim
 
-    ldi r22, 0x04
+    ldi r22, 0x04				; initialize counter for 4 blinks
 
 leds_blink:
     ser r20
-    out PORTB, r20
-    ldi r21, 0x0a
+    out PORTB, r20				; turn LEDs on
+    ldi r21, 0x0a				; initialize counter to 10 for delay
 
-    rcall delay_between
+    rcall delay_between			; call 50ms delay routine (500ms)
 
     clr r20
-    out PORTB, r20
-    ldi r21, 0x0a
+    out PORTB, r20				; turn LEDS off
+    ldi r21, 0x0a				; initialize counter to 10 for delay
 
-    rcall delay_between
+    rcall delay_between			; call 50ms delay routine (500ms)
 
-    dec r22
-    cpi r22, 0
-    brne leds_blink
+    dec r22						; decrement blinking counter
+    cpi r22, 0					; if it is not 0 repeat
+    brne leds_blink				; else continue
 
-    rjmp first
+    rjmp first					; restart from the beginning
 
 delay_between:
-    rcall scan_keypad_rising_edge_sim
-    ldi r24, low(35)
-    ldi r25, high(35)
-    rcall wait_msec
-    dec r21
-    cpi r21, 0
-    brne delay_between
-    ret
+    rcall scan_keypad_rising_edge_sim ; scan keypad (15ms)
+    ldi r24, low(35)			; set registers for 35ms delay
+    ldi r25, high(35)			; so 15+35ms is equal to 50ms delay
+    rcall wait_msec				; call the msec delay routine
+    dec r21						; decrement delay counter
+    cpi r21, 0					; if it is not 0 repeat
+    brne delay_between			; else continue
+    ret							; return to where it was called from
 
-; ==================================================== ;
+; ================================================================= ;
 
 scan_row_sim:
 	out PORTC, r25              ; η αντίστοιχη γραμμή τίθεται στο λογικό ‘1’
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
-	push r25                    ; λειτουργία του προγραμματος απομακρυσμένης
+	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
 	ldi r24,low(500)            ; πρόσβασης
     ldi r25,high(500)
 	rcall wait_usec
@@ -150,7 +150,7 @@ scan_row_sim:
 	ret                         ; οι διακόπτες
 
 scan_keypad_sim:
-	push r26                    ; αποθήκευσε τους καταχωρητές r27:r26 γιατι τους
+	push r26                    ; αποθήκευσε τους καταχωρητές r27:r26 γιατί τους
 	push r27                    ; αλλάζουμε μέσα στην ρουτίνα
 	ldi r25 , 0x10              ; έλεγξε την πρώτη γραμμή του πληκτρολογίου (PC4: 1 2 3 A)
 	rcall scan_row_sim
@@ -175,7 +175,7 @@ scan_keypad_sim:
 
 scan_keypad_rising_edge_sim:
 	push r22                    ; αποθήκευσε τους καταχωρητές r23:r22 και τους
-	push r23                    ; r26:r27 γιατι τους αλλάζουμε μέσα στην ρουτίνα
+	push r23                    ; r26:r27 γιατί τους αλλάζουμε μέσα στην ρουτίνα
 	push r26
 	push r27
 	rcall scan_keypad_sim       ; έλεγξε το πληκτρολόγιο για πιεσμένους διακόπτες
@@ -206,7 +206,7 @@ scan_keypad_rising_edge_sim:
 	ret 
 
 keypad_to_ascii_sim:
-	push r26                    ; αποθήκευσε τους καταχωρητές r27:r26 γιατι τους
+	push r26                    ; αποθήκευσε τους καταχωρητές r27:r26 γιατί τους
 	push r27                    ; αλλάζουμε μέσα στη ρουτίνα
 	movw r26 ,r24               ; λογικό ‘1’ στις θέσεις του καταχωρητή r26 δηλώνουν
 	                            ; τα παρακάτω σύμβολα και αριθμούς
@@ -271,7 +271,7 @@ return_ascii:
 
 write_2_nibbles_sim:
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
-	push r25                    ; λειτουργία του προγραμματος απομακρυσμένης
+	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
 	ldi r24 ,low(6000)          ; πρόσβασης
     ldi r25 ,high(6000)
 	rcall wait_usec
@@ -286,7 +286,7 @@ write_2_nibbles_sim:
 	sbi PORTD, PD3              ; δημιουργείται παλμός Enable στον ακροδέκτη PD3
 	cbi PORTD, PD3              ; PD3=1 και μετά PD3=0
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
-	push r25                    ; λειτουργία του προγραμματος απομακρυσμένης
+	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
 	ldi r24 ,low(6000)          ; πρόσβασης
     ldi r25 ,high(6000)
 	rcall wait_usec
@@ -341,7 +341,7 @@ lcd_init_sim:
 	rcall wait_usec             ; δεν θα συμβεί τίποτα, αλλά αν ο ελεγκτής έχει διαμόρφωση
 	                            ; εισόδου 4 bit θα μεταβεί σε διαμόρφωση 8 bit
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
-	push r25                    ; λειτουργία του προγραμματος απομακρυσμένης
+	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
 	ldi r24,low(1000)           ; πρόσβασης
     ldi r25,high(1000)
 	rcall wait_usec
@@ -355,7 +355,7 @@ lcd_init_sim:
 	ldi r25,0
 	rcall wait_usec 
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
-	push r25                    ; λειτουργία του προγραμματος απομακρυσμένης
+	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
 	ldi r24 ,low(1000)          ; πρόσβασης
     ldi r25 ,high(1000)
 	rcall wait_usec
@@ -369,7 +369,7 @@ lcd_init_sim:
 	ldi r25,0
 	rcall wait_usec
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
-	push r25                    ; λειτουργία του προγραμματος απομακρυσμένης
+	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
 	ldi r24 ,low(1000)          ; πρόσβασης
     ldi r25 ,high(1000)
 	rcall wait_usec
