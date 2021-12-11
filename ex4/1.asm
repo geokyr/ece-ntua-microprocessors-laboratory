@@ -84,6 +84,8 @@ correct_team:
     andi leds, 0x7f
     out PORTB, leds				; turn PB7 off
 
+	ldi r24, 0x01
+	rcall lcd_command_sim		; clear display (1530 us delay)
 	sbrc flags, 1				; if flags(1) is set (gas_error)
 	rcall gas					; re-display gas message
 
