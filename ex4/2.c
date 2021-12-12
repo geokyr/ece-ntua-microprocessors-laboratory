@@ -164,7 +164,7 @@ ISR(ADC_vect) {
 			blinker = 0;				// // set blinker to 0
 		}
 		else {
-			PORTB = leds &= 0x80;		// output only PB7
+			PORTB = (leds && 0x80);		// output only PB7
 			blinker = 1;				// set blinker to 1
 		}
 	}
