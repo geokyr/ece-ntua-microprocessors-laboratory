@@ -133,7 +133,7 @@ void ADC_init(void) {
 
 // timer1 interruption service routine
 ISR(TIMER1_OVF_vect) {
-	ADCRSA |= (1 << ADSC);				// set ADSC bit to 1
+	ADCSRA |= (1 << ADSC);				// set ADSC bit to 1
 	TCNT1 = 64755;						// reset the 100 ms timer
 }
 
@@ -210,9 +210,9 @@ int main(void) {
 
 	ADC_init();							// initialize ADC
 
-	TIMSK = (1 << TOIE1)				// overflow interrupt TIMER1
+	TIMSK = (1 << TOIE1);				// overflow interrupt TIMER1
 	TCCR1B = (1 << CS12) | (0 << CS11) | (1 << CS10);// CK/1024
-	TCNT1 = 64755						// interrupt every 100 ms
+	TCNT1 = 64755;						// interrupt every 100 ms
 	sei();								// enable interrupts
 
 	leds = 0x00;						// initialize leds
