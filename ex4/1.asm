@@ -300,7 +300,7 @@ gasly:
 	sbrs flags, 2				; if the blinker is 1 change blinker
 	rjmp turn_off				; else turn off LEDs
 
-	andi flag, 0xfb				; set flags(2) to 0 (blinker)
+	andi flags, 0xfb				; set flags(2) to 0 (blinker)
 	rjmp exit
 turn_off:
 	ori flags, 0x04				; set flags(2) to 1 (blinker)
