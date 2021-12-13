@@ -33,10 +33,10 @@ main:
 	rcall lcd_init_sim			; initialize lcd screen
     rcall ADC_init              ; initialize ADC
 
-	ldi r24, (1 << TOIE1)		; enable overflow interrupt
-	out TIMSK, r24				; for TIMER1
-	ldi r24, (1 << CS12) | (0 << CS11) | (1 << CS10)
-	out TCCR1B, r24				; set TCNT1 prescaler to CK/1024
+	ldi r24, (1 << TOIE1)		; enable overflow interrupt of TIMER1
+	out TIMSK, r24
+	ldi r24, (1 << CS12) | (0 << CS11) | (1 << CS10); CK/1024
+	out TCCR1B, r24
 	ldi r24, 0xfc				; interrupt every 100 ms so calculate
 	out TCNT1H, r24				; initial value as 65536 - 0.1 *  
 	ldi r24, 0xf3				; 8000000 / 1024 = 65536 - 781.25 =
@@ -51,8 +51,8 @@ first:
     cpi r20, 0					; so repeat reading
     breq first					; else, continue
 
-    mov r19, r25				; store buttons pressed to r19r18
-    mov r18, r24
+    mov r19, r25				; store buttons pressed (r25r24)
+    mov r18, r24				; to r1918 for later check
 
 second:		
     rcall scan_keypad_rising_edge_sim; scan keypad
