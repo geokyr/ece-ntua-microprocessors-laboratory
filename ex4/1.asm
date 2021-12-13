@@ -81,7 +81,7 @@ correct_team:
     andi leds, 0x7f				; turn PB7 off
 
 	ldi r24, 0x01
-	rcall lcd_command_sim		; clear display
+	rcall lcd_command_sim		; clear display after welcome message
 	sbrc flags, 1				; if gas_error is set
 	rcall gas					; re-display gas message
 	andi flags, 0xfe			; set correct_team to 0
