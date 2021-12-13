@@ -1,4 +1,4 @@
-#define F_CPU 800000					// frequency of atmega16
+#define F_CPU 8000000					// frequency of atmega16
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
@@ -139,7 +139,7 @@ ISR(TIMER1_OVF_vect) {
 
 // update LEDs based on new ADC value
 void update_leds() {
-	leds &= 0x80;						// keep only PB7 
+	leds &= 0x80;						// keep only PB7
 	if (ADC < 128) leds |= 0x00;		// level 0, 0 LEDs
 	else if (ADC < 256) leds |= 0x01;	// level 1, 1 LED
 	else if (ADC < 384) leds |= 0x03;	// level 2, 2 LEDs
@@ -154,19 +154,17 @@ void update_leds() {
 ISR(ADC_vect) {
 	update_leds();						// update LEDs
 
-	if (correct_team) {
-		PORTB = leds;					// output LEDs
-		return;							// correct_team, don't alarm
+	if (correct_team) {					// if correct_team = 1
+		blinker = 1;					// turn on PB7 + gas LEDs
 	}
-	if (ADC >= 206) {
-		if (blinker) {
-			PORTB = leds;				// output LEDs
-			blinker = 0;				// // set blinker to 0
-		}
-		else {
-			PORTB = (leds && 0x80);		// output only PB7
-			blinker = 1;				// set blinker to 1
-		}
+
+	if (ADC >= 206 && !blinker) {		// if Cx > 70 and blinker = 0
+		PORTB = (leds & 0x80);			// output only PB7
+		blinker = 1;					// next, turn on gas LEDs
+	}
+	else {								// if Cx <= 70 or blinker = 1
+		PORTB = leds;					// output PB7 + gas LEDs
+		blinker = 0;					// next, turn off gas LEDs
 	}
 }
 
@@ -174,14 +172,12 @@ ISR(ADC_vect) {
 void correct() {
 	correct_team = 1;					// set correct_team to 1
 	
-	leds |= 0x80;
-	PORTB = leds;                       // turn PB7 on
+	leds |= 0x80;                       // turn PB7 on
 	for(int i = 0; i < 80; i++) {       // 4000ms divided in 80*50ms
 		scan_keypad_rising_edge();      // read/ignore keypad (15ms)
 		_delay_ms(35);                  // 80*50ms is 80*(15+35)
 	}
-	leds &= 0x7f;
-	PORTB = leds;                       // turn PB7 off
+	leds &= 0x7f;						// turn PB7 off
 	correct_team = 0;					// set correct_team to 0
 }
 
@@ -189,12 +185,10 @@ void correct() {
 void wrong() {
 	for(int i = 0; i < 8; i++) {        // loop 8 times (4 on/off)
 		if(i % 2) {                     // if i is odd (1, 3, 5, 7)
-			leds &= 0x7f;
-			PORTB = leds;               // turn PB7 off
+			leds &= 0x7f;				// turn PB7 off
 		}
 		else {                          // if i is even (0, 2, 4, 6)
-			leds |= 0x80;
-			PORTB = leds;               // turn PB7 on
+			leds |= 0x80;				// turn PB7 on
 		}
 
 		for(int j = 0; j < 10; j++) {   // 500ms divided in 10*50ms

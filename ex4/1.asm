@@ -1,13 +1,13 @@
+.include "m16def.inc"
+.def leds = r16
+.def flags = r17				; flags(0) = correct_team
+								; flags(1) = gas_error
+								; flags(2) = blinker
+
 .DSEG
 _tmp_: .byte 2					; initialize _tmp_ for RAM
 
 .CSEG
-.include "m16def.inc"
-.def leds = r28
-.def flags = r29				; flags(0) = correct_team
-								; flags(1) = gas_error
-								; flags(2) = blinker
-
 .org 0x00
 rjmp main                       ; main program
 .org 0x10
@@ -21,7 +21,16 @@ main:
     ldi r24, high(RAMEND)
     out SPH, r24
 
-    rcall lcd_init_sim			; initialize lcd screen
+	clr leds					; initialize leds
+	clr flags					; initialize flags
+
+	ser r24
+    out DDRB, r24				; set PORTB as output
+    out DDRD, r24				; set PORTD as output
+    ldi r24, (1 << PC7) | (1 << PC6) | (1 << PC5) | (1 << PC4)
+    out DDRC, r24				; set PORTC[7:4] as output
+
+	rcall lcd_init_sim			; initialize lcd screen
     rcall ADC_init              ; initialize ADC
 
 	ldi r24, (1 << TOIE1)		; enable overflow interrupt
@@ -33,15 +42,6 @@ main:
 	ldi r24, 0xf3				; 8000000 / 1024 = 65536 - 781.25 =
 	out TCNT1L, r24				; 64754.75 -> 64755 = 0xfcf3
 	sei							; enable interrupts
-
-	clr leds					; initialize leds
-	clr flags					; initialize flags
-	ser r24
-    out DDRB, r24				; set PORTB as output
-    out DDRD, r24				; set PORTD as output
-
-    ldi r24, (1 << PC7) | (1 << PC6) | (1 << PC5) | (1 << PC4)
-    out DDRC, r24				; set PORTC[7:4] as output
 
 first:
     rcall scan_keypad_rising_edge_sim ; scan keypad
@@ -55,7 +55,7 @@ first:
     mov r18, r24
 
 second:		
-    rcall scan_keypad_rising_edge_sim ; scan keypad
+    rcall scan_keypad_rising_edge_sim; scan keypad
     clr r20						; add 2 registers with button values 
     or r20, r24					; to r20 and check if it is 0
     or r20, r25					; if it is 0 no button was pressed
@@ -72,50 +72,38 @@ second:
     brne wrong_team				; also, do the same for r25r24
 
 correct_team:
-	ori flags, 0x01				; set LSB of flags to 1
+	ori flags, 0x01				; set correct_team to 1
 	rcall welcome				; display welcome message
 
-    ori leds, 0x80
-    out PORTB, leds				; turn PB7 on
-    ldi r21, 0x50				; initialize counter to 80 for delay
-
+    ori leds, 0x80				; turn PB7 on
+	ldi r21, 0x50				; initialize counter to 80 for delay
     rcall delay_between			; call 50ms delay routine (4000ms)
-
-    andi leds, 0x7f
-    out PORTB, leds				; turn PB7 off
+    andi leds, 0x7f				; turn PB7 off
 
 	ldi r24, 0x01
-	rcall lcd_command_sim		; clear display (1530 us delay)
-	sbrc flags, 1				; if flags(1) is set (gas_error)
+	rcall lcd_command_sim		; clear display
+	sbrc flags, 1				; if gas_error is set
 	rcall gas					; re-display gas message
-
-	andi flags, 0xfe			; set LSB of flags to 0
+	andi flags, 0xfe			; set correct_team to 0
     rjmp first					; restart from the beginning
 
 wrong_team:
 	ldi r22, 0x04				; initialize counter for 4 blinks
-
 led_blink:
-    ori leds, 0x80
-    out PORTB, leds				; turn PB7 on
+    ori leds, 0x80				; turn PB7 on
     ldi r21, 0x0a				; initialize counter to 10 for delay
-
     rcall delay_between			; call 50ms delay routine (500ms)
-
-    andi leds, 0x7f
-    out PORTB, leds				; turn PB7 off
+    andi leds, 0x7f				; turn PB7 off
     ldi r21, 0x0a				; initialize counter to 10 for delay
-
     rcall delay_between			; call 50ms delay routine (500ms)
 
     dec r22						; decrement blinking counter
     cpi r22, 0					; if it is not 0 repeat
     brne led_blink				; else continue
-
     rjmp first					; restart from the beginning
 
 delay_between:
-    rcall scan_keypad_rising_edge_sim ; scan keypad (15ms)
+    rcall scan_keypad_rising_edge_sim; scan keypad (15ms)
     ldi r24, low(35)			; set registers for 35ms delay
     ldi r25, high(35)			; so 15+35ms is equal to 50ms delay
     rcall wait_msec				; call the msec delay routine
@@ -126,8 +114,6 @@ delay_between:
 
 welcome:
 	rcall lcd_init_sim			; initialize lcd screen
-	ldi r24, 0x01
-	rcall lcd_command_sim		; clear display (1530 us delay)
     ldi r24,'W'					; print the required message
 	rcall lcd_data_sim			; 'WELCOME' character by character
 	ldi r24,'E'
@@ -146,8 +132,6 @@ welcome:
 
 gas:
 	rcall lcd_init_sim			; initialize lcd screen
-	ldi r24, 0x01
-	rcall lcd_command_sim		; clear display (1530 us delay)
     ldi r24,'G'					; print the required message
 	rcall lcd_data_sim			; 'GAS DETECTED' character by
 	ldi r24,'A'					; character
@@ -176,8 +160,6 @@ gas:
 
 clear:
 	rcall lcd_init_sim			; initialize lcd screen
-	ldi r24, 0x01
-	rcall lcd_command_sim		; clear display (1530 us delay)
     ldi r24,'C'					; print the required message
 	rcall lcd_data_sim			; 'CLEAR' character by character
 	ldi r24,'L'
@@ -202,7 +184,7 @@ ISR_TIMER1_OVF:
 	ldi r24, 0xf3
 	out TCNT1L, r24
 	pop r24						; restore r24
-	ret
+	reti
 
 ; For the following routine we have used these equations:
 ;
@@ -229,6 +211,7 @@ ISR_ADC:
 	push r24					; push r24 to stack
 	push r25					; push r25 to stack
 	push r26					; push r26 to stack
+	andi leds, 0x80				; keep MSB of LEDs (PB7)
 	in r24, ADCL				; read ADC value from register
 	in r25, ADCH				; low first, then high.
 	andi r25, 0x03				; keep 2 LSBs from ADCH (10 bit ADC)
@@ -236,7 +219,7 @@ ISR_ADC:
 	cpi r25, 0x00				; check if r25 = 0 meaning ADC < 256
 	brne two_plus				; if it's not, then lowest level is 2
 	cpi r24, 0x80				; compare r24 with threshold
-	brlo level_zero				; if r24 < 128, level is 0
+	brlo controller				; if r24 < 128, level is 0
 	rjmp level_one				; if r24 >= 128, level is 1
 two_plus:
 	cpi r25, 0x01				; check if r25 = 01 meaning ADC < 512
@@ -254,67 +237,66 @@ six_plus:
 	cpi r24, 0x80				; compare r24 with threshold
 	brlo level_six				; if r24 < 128, level is 6
 level_seven:
-	ldi r26, 0x7f				; turn on all 7 LEDs (PB0 to PB6)
+	ori leds, 0x7f				; turn on all 7 LEDs (PB0 to PB6)
 	rjmp controller
 level_six:
-	ldi r26, 0x3f				; turn on 6 LEDs (PB0 to PB5)
+	ori leds, 0x3f				; turn on 6 LEDs (PB0 to PB5)
 	rjmp controller
 level_five:
-	ldi r26, 0x1f				; turn on 5 LEDs (PB0 to PB4)
+	ori leds, 0x1f				; turn on 5 LEDs (PB0 to PB4)
 	rjmp controller
 level_four:
-	ldi r26, 0x0f				; turn on 4 LEDs (PB0 to PB3)
+	ori leds, 0x0f				; turn on 4 LEDs (PB0 to PB3)
 	rjmp controller
 level_three:
-	ldi r26, 0x07				; turn on 3 LEDs (PB0 to PB2)
+	ori leds, 0x07				; turn on 3 LEDs (PB0 to PB2)
 	rjmp controller
 level_two:
-	ldi r26, 0x03				; turn on 2 LEDs (PB0 and PB1)
+	ori leds, 0x03				; turn on 2 LEDs (PB0 and PB1)
 	rjmp controller
 level_one:
-	ldi r26, 0x01				; turn on 1 LED (PB0)
-	rjmp controller
-level_zero:
-	ldi r26, 0x00				; dont turn on any LED
+	ori leds, 0x01				; turn on 1 LED (PB0)
 controller:
-	andi leds, 0x80				; keep MSB of LEDs (PB7)
-	or leds, r26				; add the updated LEDs (PB0-PB6)
-	out PORTB, leds				; output the LEDs
+	sbrc flags, 0				; if correct_team is set then expert
+	ori flags, 0x04				; team will enter, so don't alarm
 
-	sbrc flags, 0				; if LSB of flags is set then expert
-	rjmp exit					; team will enter, so don't alarm
-
-	cpi r24, 0xce				; check if r24 >= 206 (Cx > 70)
-	brsh gasly					; if it is go to gasly routine
+	cpi r25, 0x00				; check if r25 >= 0 (ADC > 256)
+	brne gasly					; or Cx > 70, if yes go to gasly 
+	cpi r24, 0xce				; check if r24 >= 206 (r25 = 0)
+	brsh gasly					; or Cx > 70, if yes go to gasly
 tsunoda:
+	out PORTB, leds				; output PB7 + gas LEDs
+	andi flags, 0xfb			; set blinker to 0
+	
 	sbrs flags, 1				; if there was no gas_error before
-	rjmp exit					; then don't re-display gas and exit
+	rjmp exit					; then don't display clear and exit
 
-	andi flags, 0xf9			; set flags(1) and flags(2) to 0
+	andi flags, 0xfd			; set gas_error to 0
 	rcall clear					; display clear message
 	rjmp exit
 gasly:
+	sbrc flags, 2				; if the blinker is 1
+	rjmp all_on					; turn all LEDs on
+
 	sbrs flags, 1				; if there was no gas_error before
-	rjmp new_error				; then go to new_error routine
-	
-	sbrs flags, 2				; if the blinker is 1 change blinker
-	rjmp turn_off				; else turn off LEDs
+	rcall new_error				; then call the new_error routine
 
-	andi flags, 0xfb				; set flags(2) to 0 (blinker)
-	rjmp exit
-turn_off:
-	ori flags, 0x04				; set flags(2) to 1 (blinker)
-	andi leds, 0x80				; turn off LEDs except PB7
+	andi leds, 0x80				; keep only PB7
 	out PORTB, leds				; output only PB7
+	ori flags, 0x04				; set blinker to 1
 	rjmp exit
-
-new_error:
-	ori flags, 0x02				; set flags(1) to 1 (gas_error)
-	rcall gas					; display gas message
+all_on:
+	out PORTB, leds				; output PB7 + gas LEDs
+	andi flags, 0xfb			; set blinker to 0
 exit:
 	pop r26						; restore r26
 	pop r25						; restore r25
 	pop r24						; restore r24
+	reti
+
+new_error:
+	ori flags, 0x02				; set gas_error to 1
+	rcall gas					; display gas message
 	ret
 
 ; ================================================================= ;
@@ -327,7 +309,7 @@ ADC_init:
     ;Set Prescaler CK/128 = 62.5Khz (ADPS2:0=111)
     ldi r24,(1<<ADEN)|(1<<ADIE)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0)
     out ADCSRA,r24
-    ret
+    reti
 
 scan_row_sim:
 	out PORTC, r25              ; η αντίστοιχη γραμμή τίθεται στο λογικό ‘1’
