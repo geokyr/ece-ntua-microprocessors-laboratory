@@ -257,30 +257,29 @@ level_two:
 level_one:
 	ori leds, 0x01				; turn on 1 LED (PB0)
 controller:
-	sbrc flags, 0				; if correct_team is set then expert
-	ori flags, 0x04				; team will enter, so don't alarm
+	sbrc flags, 0				; if correct_team = 1 then expert
+	rjmp all_on					; team will enter, so don't alarm
 
 	cpi r25, 0x00				; check if r25 >= 0 (ADC > 256)
 	brne gasly					; or Cx > 70, if yes go to gasly 
 	cpi r24, 0xce				; check if r24 >= 206 (r25 = 0)
 	brsh gasly					; or Cx > 70, if yes go to gasly
-tsunoda:
-	out PORTB, leds				; output PB7 + gas LEDs
-	andi flags, 0xfb			; set blinker to 0
-	
-	sbrs flags, 1				; if there was no gas_error before
-	rjmp exit					; then don't display clear and exit
+tsunoda:	
+	sbrs flags, 1				; if gas_error = 0 then
+	rjmp all_on					; don't display clear
 
-	andi flags, 0xfd			; set gas_error to 0
+	andi flags, 0xfd			; else, set gas_error to 0
 	rcall clear					; display clear message
-	rjmp exit
+	rjmp all_on
 gasly:
-	sbrc flags, 2				; if the blinker is 1
+	sbrc flags, 2				; if the blinker = 1
 	rjmp all_on					; turn all LEDs on
 
-	sbrs flags, 1				; if there was no gas_error before
-	rcall new_error				; then call the new_error routine
-
+	sbrc flags, 1				; if gas_error = 0 before then
+	rjmp only_pb7				; don't jump to output, first
+	ori flags, 0x02				; set gas_error to 1 and then
+	rcall gas					; display gas message
+only_pb7:
 	andi leds, 0x80				; keep only PB7
 	out PORTB, leds				; output only PB7
 	ori flags, 0x04				; set blinker to 1
@@ -293,11 +292,6 @@ exit:
 	pop r25						; restore r25
 	pop r24						; restore r24
 	reti
-
-new_error:
-	ori flags, 0x02				; set gas_error to 1
-	rcall gas					; display gas message
-	ret
 
 ; ================================================================= ;
 

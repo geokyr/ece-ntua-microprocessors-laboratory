@@ -150,21 +150,36 @@ void update_leds() {
 	else leds |= 0x7f;					// level 7, 7 LEDs
 }
 
+// // ADC interruption service routine
+// ISR(ADC_vect) {
+// 	update_leds();						// update LEDs
+
+// 	if (correct_team) {					// if correct_team = 1
+// 		blinker = 1;					// turn on PB7 + gas LEDs
+// 	}
+
+// 	if (ADC >= 206 && !blinker) {		// if Cx > 70 and blinker = 0
+// 		PORTB = (leds & 0x80);			// output only PB7
+// 		blinker = 1;					// next, turn on gas LEDs
+// 	}
+// 	else {								// if Cx <= 70 or blinker = 1
+// 		PORTB = leds;					// output PB7 + gas LEDs
+// 		blinker = 0;					// next, turn off gas LEDs
+// 	}
+// }
+
 // ADC interruption service routine
 ISR(ADC_vect) {
 	update_leds();						// update LEDs
 
-	if (correct_team) {					// if correct_team = 1
-		blinker = 1;					// turn on PB7 + gas LEDs
+	// if correct_team = 1 or Cx <= 70 or blinker = 1
+	if (correct_team || ADC < 206 || (ADC >= 206 && blinker)) {
+		PORTB = leds;					// output PB7 + gas LEDs
+		blinker = 0;					// set blinker to 0
 	}
-
-	if (ADC >= 206 && !blinker) {		// if Cx > 70 and blinker = 0
+	else if (ADC >= 206 && !blinker) {	// if Cx > 70 and blinker = 0
 		PORTB = (leds & 0x80);			// output only PB7
 		blinker = 1;					// next, turn on gas LEDs
-	}
-	else {								// if Cx <= 70 or blinker = 1
-		PORTB = leds;					// output PB7 + gas LEDs
-		blinker = 0;					// next, turn off gas LEDs
 	}
 }
 
