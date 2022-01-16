@@ -3,7 +3,11 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
-unsigned char memory[2], keypad[2], duty = 0, digit;
+extern void lcd_data_sim(uint8_t);
+extern void lcd_init_sim();
+
+uint8_t value;
+unsigned char memory[2], keypad[2], duty = 0, digit = 0;
 
 // scan a keyboard row defined by i
 unsigned char scan_row(int i) {
@@ -130,59 +134,96 @@ void ADC_init(void) {
 	ADCSRA = (1 << ADEN) | (1 << ADIE) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 }
 
-// TMR1A compare match interruption service routine
-ISR(TIMER1_COMPA_vect) {
-	ADCSRA |= (1 << ADSC);				// set ADSC bit to 1
+// timer0 compare match interruption service routine
+ISR(TIMER0_COMP_vect) {
+	PORTB ^= (1 << PB3);
+}
+
+// timer0 overflow interruption service routine
+ISR(TIMER0_OVF_vect) {
+	ADCSRA |= (1 << ADSC);			// set ADSC bit to 1
+	PORTB ^= (1 << PB3);
 }
 
 // ADC interruption service routine
 ISR(ADC_vect) {
-	// V = ADC * 5/1024
-    ...
+	double V = ADC * 5.0 / 1024.0;
+    int v_one = V / 1;
+	int v_two = (int) (V * 10) % 10;
+	int v_three = (int) (V * 100) % 10;
+
+	lcd_init_sim();
+    value = 'V';
+	lcd_data_sim(value);
+    value = 'o';
+	lcd_data_sim(value);
+    value = '1';
+	lcd_data_sim(value);
+    value = '\n';
+	lcd_data_sim(value);
+ 	value = v_one + '0';
+	lcd_data_sim(value);
+    value = '.';
+	lcd_data_sim(value);
+ 	value = v_two + '0';
+	lcd_data_sim(value);
+ 	value = v_three + '0';
+	lcd_data_sim(value);
 }
 
-// PWM init function, where we use TMR1A and OC1A is connected to pin PB3
+// PWM init function, where we use TMR0 and OC0 is connected to pin PB3
 void PWM_init() {
-    // set TMR1A in fast PWM 8 bit mode with non-inverted output
+    // set TMR0 in fast PWM 8 bit mode with non-inverted output
     // prescale = 8, since f_pwm = f_clk/(N(1+TOP)) => N = 8 = prescale
-    TCCR1A = (1<<WGM10) | (1<<COM1A1);
-    TCCR1B = (1<<WGM12) | (1<<CS11);
+    TCCR0 = (1<<WGM00) | (1<<WGM01) | (1<<COM01) | (1<<CS01);
+	
+	// set duty cycle compare value to 0
+	OCR0 = 0;
 
-    // set PB3 pin as output
+	// set PB3 pin as output
     DDRB |= (1 << PB3);
+
+	// initially set PB3 to 1
+	PORTB = (1 << PB3);
 }
 
 int main () {
     memory[0] = 0;                  	// initialize array for RAM
 	memory[1] = 0;                  	// initialize array for RAM
 
+	DDRC = 0xF0;                        // [7:4] output [3:0] input
+    DDRD = 0xFF;						// PORTD is output
+
+	lcd_init_sim();						// initialize LCD
 	ADC_init();							// initialize ADC
-    PWM_init();                         // initialize PWM
 
-	TIMSK = (1 << OCIE1A);				// compare A match interrupt
+	TIMSK = (1 << TOIE0) | (1 << OCIE0);// overflow and compare match
+	PWM_init();                         // initialize PWM
 	sei();								// enable interrupts
-
-    
 
     while(1) {
 		while(1) {
             // scan for button pressed, get its ascii and break
 			if(scan_keypad_rising_edge()) {
 				digit = keypad_to_ascii();
-                break;					
+				break;
 			}
 		}
 
         // if digit is 1 then increase duty value
         if(digit == '1') {
-            duty++;
-            OCR1AL = duty;
+			if (duty < 255) {
+				duty++;
+			}
+            OCR0 = duty;
             _delay_ms(8);
         }
         // if digit is 2 then decrease duty value
         else if(digit == '2') {
-            duty--;
-            OCR1AL = duty;
+            if (duty > 0) {
+				duty--;
+			}
+            OCR0 = duty;
             _delay_ms(8);
         }
     }

@@ -1,8 +1,15 @@
+#define _SFR_ASM_COMPAT 1 
+#define __SFR_OFFSET 0
+#include <avr/io.h> 
+
+.global lcd_data_sim
+.global lcd_init_sim
+
 write_2_nibbles_sim:
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
 	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
-	ldi r24 ,low(6000)          ; πρόσβασης
-    ldi r25 ,high(6000)
+	ldi r24 ,lo8(6000)          ; πρόσβασης
+    ldi r25 ,hi8(6000)
 	rcall wait_usec
 	pop r25
 	pop r24                     ; τέλος τμήμα κώδικα
@@ -16,8 +23,8 @@ write_2_nibbles_sim:
 	cbi PORTD, PD3              ; PD3=1 και μετά PD3=0
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
 	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
-	ldi r24 ,low(6000)          ; πρόσβασης
-    ldi r25 ,high(6000)
+	ldi r24 ,lo8(6000)          ; πρόσβασης
+    ldi r25 ,hi8(6000)
 	rcall wait_usec
 	pop r25
 	pop r24                     ; τέλος τμήμα κώδικα
@@ -71,8 +78,8 @@ lcd_init_sim:
 	                            ; εισόδου 4 bit θα μεταβεί σε διαμόρφωση 8 bit
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
 	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
-	ldi r24,low(1000)           ; πρόσβασης
-    ldi r25,high(1000)
+	ldi r24,lo8(1000)           ; πρόσβασης
+    ldi r25,hi8(1000)
 	rcall wait_usec
 	pop r25
 	pop r24                     ; τέλος τμήμα κώδικα
@@ -85,8 +92,8 @@ lcd_init_sim:
 	rcall wait_usec 
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
 	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
-	ldi r24 ,low(1000)          ; πρόσβασης
-    ldi r25 ,high(1000)
+	ldi r24 ,lo8(1000)          ; πρόσβασης
+    ldi r25 ,hi8(1000)
 	rcall wait_usec
 	pop r25
 	pop r24                     ; τέλος τμήμα κώδικα
@@ -99,8 +106,8 @@ lcd_init_sim:
 	rcall wait_usec
 	push r24                    ; τμήμα κώδικα που προστίθεται για τη σωστή
 	push r25                    ; λειτουργία του προγράμματος απομακρυσμένης
-	ldi r24 ,low(1000)          ; πρόσβασης
-    ldi r25 ,high(1000)
+	ldi r24 ,lo8(1000)          ; πρόσβασης
+    ldi r25 ,hi8(1000)
 	rcall wait_usec
 	pop r25
 	pop r24                     ; τέλος τμήμα κώδικα
@@ -110,8 +117,8 @@ lcd_init_sim:
 	rcall lcd_command_sim
 	ldi r24,0x01                ; καθαρισμός της οθόνης
 	rcall lcd_command_sim
-	ldi r24, low(1530)
-    ldi r25, high(1530)
+	ldi r24, lo8(1530)
+    ldi r25, hi8(1530)
 	rcall wait_usec
 	ldi r24 ,0x06               ; ενεργοποίηση αυτόματης αύξησης κατά 1 της διεύθυνσης
 	rcall lcd_command_sim       ; που είναι αποθηκευμένη στον μετρητή διευθύνσεων και
@@ -123,8 +130,8 @@ lcd_init_sim:
 wait_msec:
     push r24                    ; 2 κύκλοι (0.250 μsec)
     push r25                    ; 2 κύκλοι
-    ldi r24 , low(998)          ; φόρτωσε τον καταχ. r25:r24 με 998 (1 κύκλος - 0.125 μsec)
-    ldi r25 , high(998)         ; 1 κύκλος (0.125 μsec)
+    ldi r24 , lo8(998)          ; φόρτωσε τον καταχ. r25:r24 με 998 (1 κύκλος - 0.125 μsec)
+    ldi r25 , hi8(998)         ; 1 κύκλος (0.125 μsec)
     rcall wait_usec             ; 3 κύκλοι (0.375 μsec), προκαλεί συνολικά καθυστέρηση 998.375 μsec
     pop r25                     ; 2 κύκλοι (0.250 μsec)
     pop r24                     ; 2 κύκλοι
