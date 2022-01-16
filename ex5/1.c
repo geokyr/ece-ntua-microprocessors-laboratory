@@ -143,7 +143,8 @@ ISR(TIMER0_OVF_vect) {
 	// increment counter with every overflow
 	counter++;
 
-	// if counter reaches 1000, start the ADC conversion and reset it to 0
+	// if counter reaches 1000, start the ADC conversion 
+	// and reset the counter to 0
 	if(counter == 1000){
 		ADCSRA |= (1 << ADSC);
 		counter = 0;
@@ -180,10 +181,10 @@ ISR(ADC_vect) {
 	lcd_data_sim(value);
 }
 
-// PWM init function, where we use TMR0 and OC0 is connected to pin PB3
+// PWM init function of TMR0 and OC0 is connected to pin PB3
 void PWM_init() {
     // set TMR0 in fast PWM 8 bit mode with non-inverted output
-    // prescale = 8, since f_pwm = f_clk/(N(1+TOP)) => N = 8 = prescale
+    // prescale = 8, since f_pwm = f_clk/(N(1+TOP)) => N = 8
     TCCR0 = (1<<WGM00) | (1<<WGM01) | (1<<COM01) | (1<<CS01);
 	
 	// set initial duty cycle compare value to 0
