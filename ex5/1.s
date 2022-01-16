@@ -1,7 +1,12 @@
+; AVR GCC compiler is used so there are a few changes on the code, like
+; high -> hi8, low -> lo8 and .include "m16def.inc" -> #include <avr/io.h>
+
+; following lines are needed to use the IN/OUT ports
 #define _SFR_ASM_COMPAT 1 
 #define __SFR_OFFSET 0
-#include <avr/io.h> 
+#include <avr/io.h>
 
+; global declaration of functions that are used in the c program
 .global lcd_data_sim
 .global lcd_init_sim
 

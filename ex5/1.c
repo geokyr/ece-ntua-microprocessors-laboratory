@@ -3,11 +3,15 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
+// extern is used to link the assembly functions that will be used
+// here, declared as global, on the .s file
 extern void lcd_data_sim(uint8_t);
 extern void lcd_init_sim();
 
+// global variables
 uint8_t value;
 unsigned char memory[2], keypad[2], duty = 0, digit = 0;
+int counter = 0;
 
 // scan a keyboard row defined by i
 unsigned char scan_row(int i) {
@@ -134,24 +138,29 @@ void ADC_init(void) {
 	ADCSRA = (1 << ADEN) | (1 << ADIE) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 }
 
-// timer0 compare match interruption service routine
-ISR(TIMER0_COMP_vect) {
-	PORTB ^= (1 << PB3);
-}
-
-// timer0 overflow interruption service routine
+// TMR0 overflow interruption service routine
 ISR(TIMER0_OVF_vect) {
-	ADCSRA |= (1 << ADSC);			// set ADSC bit to 1
-	PORTB ^= (1 << PB3);
+	// increment counter with every overflow
+	counter++;
+
+	// if counter reaches 1000, start the ADC conversion and reset it to 0
+	if(counter == 1000){
+		ADCSRA |= (1 << ADSC);
+		counter = 0;
+	}
 }
 
 // ADC interruption service routine
 ISR(ADC_vect) {
+	// read the ADC value and get the integer digit (v_one)
+	// plus the first 2 decimal digits (v_two, v_three)
 	double V = ADC * 5.0 / 1024.0;
     int v_one = V / 1;
 	int v_two = (int) (V * 10) % 10;
 	int v_three = (int) (V * 100) % 10;
 
+	// clear the screen by initializing it again and output
+	// the voltage according to the specified format
 	lcd_init_sim();
     value = 'V';
 	lcd_data_sim(value);
@@ -177,14 +186,11 @@ void PWM_init() {
     // prescale = 8, since f_pwm = f_clk/(N(1+TOP)) => N = 8 = prescale
     TCCR0 = (1<<WGM00) | (1<<WGM01) | (1<<COM01) | (1<<CS01);
 	
-	// set duty cycle compare value to 0
+	// set initial duty cycle compare value to 0
 	OCR0 = 0;
 
 	// set PB3 pin as output
     DDRB |= (1 << PB3);
-
-	// initially set PB3 to 1
-	PORTB = (1 << PB3);
 }
 
 int main () {
@@ -197,7 +203,7 @@ int main () {
 	lcd_init_sim();						// initialize LCD
 	ADC_init();							// initialize ADC
 
-	TIMSK = (1 << TOIE0) | (1 << OCIE0);// overflow and compare match
+	TIMSK = (1 << TOIE0);				// enable overflow interrupt
 	PWM_init();                         // initialize PWM
 	sei();								// enable interrupts
 
@@ -210,20 +216,20 @@ int main () {
 			}
 		}
 
-        // if digit is 1 then increase duty value
+        // if digit is 1 then increase duty value and update OCR0
         if(digit == '1') {
 			if (duty < 255) {
 				duty++;
+				OCR0 = duty;
 			}
-            OCR0 = duty;
             _delay_ms(8);
         }
-        // if digit is 2 then decrease duty value
+        // if digit is 2 then decrease duty value and update OCR0
         else if(digit == '2') {
             if (duty > 0) {
 				duty--;
+				OCR0 = duty;
 			}
-            OCR0 = duty;
             _delay_ms(8);
         }
     }
