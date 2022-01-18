@@ -140,12 +140,9 @@ void ADC_init(void) {
 
 // TMR0 overflow interruption service routine
 ISR(TIMER0_OVF_vect) {
-	// increment counter with every overflow
-	counter++;
-
-	// if counter reaches 1000, start the ADC conversion 
-	// and reset the counter to 0
-	if(counter == 1000){
+	// increment counter with every overflow, if counter reaches 1000
+	// start the ADC conversion and reset the counter to 0
+	if(counter++ == 1000){
 		ADCSRA |= (1 << ADSC);
 		counter = 0;
 	}
