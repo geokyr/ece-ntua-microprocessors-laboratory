@@ -1,0 +1,70 @@
+    IN 10H
+START:
+    CALL KIND       ; read x1 from the keyboard
+    MOV B,A         ; B = x1 (0 <= x1 <= 5)
+    CALL KIND       ; read x2 from the keyboard
+    MOV C,A         ; C = x2 (0 <= x2 <= F)
+    
+    LXI H,0A00H     ; initialize address for the display
+    MVI M,10H       ; load the space symbol
+    INX H           ; increment memory pointer
+    MVI M,10H
+    INX H
+    MVI M,10H
+    INX H
+    MVI M,10H
+    INX H
+    MVI M,10H
+    INX H
+    MVI M,10H
+
+    MOV A,B         ; A = x1
+    LXI H,0A00H     ; initialize address for the display
+LOOPER:
+    CPI 00H
+    JZ STOP
+    DCR A
+    INX H
+    JMP LOOPER
+STOP:
+    MOV M,C
+    LXI D,0A00H     ; load D with the memory address
+    CALL STDM       ; call the routine to prepare the display
+    CALL DCD        ; output to the 7-segment displays
+    
+    JMP START       ; repeat
+END
+
+;====================================================================
+
+START:
+	IN 10H
+	LXI D,0A00H
+	LXI H,0A00H
+	CALL KIND
+	MOV B,A ; kratame sto B thn timh tou X1
+	CALL KIND
+	MOV C,A ; kratame sto C thn timh tou X2
+	;MVI C,0AH
+LOOP1:
+	MOV A,B
+	CPI 00H ; meiwnoume to X1 enw pigainoume aristera sto 7 mexri ti swsti thesi
+	JZ CONTINUE
+	MVI M,10H
+	INX H
+	DCR B
+	JMP LOOP1
+CONTINUE:
+	MOV M,C ; vazoume to x2 sth swsth thesi	
+LOOP2:
+	MOV A,L ; auksanoume to L mexri na gemisoun kai oi 6 theseis tou 7 seg
+	CPI 05H
+	JZ CONT
+	INX H
+	MVI M,10H
+	JMP LOOP2
+CONT:
+	CALL STDM
+	CALL DCD
+	JMP START
+END

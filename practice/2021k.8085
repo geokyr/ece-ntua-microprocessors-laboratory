@@ -1,0 +1,38 @@
+    IN 10H
+START:              ; max value = 7 + 7 = 14 < FF
+    CALL KIND       ; read x1 from the keyboard
+    MOV B,A         ; B = x1
+    CALL KIND       ; read x2 from the keyboard
+
+    ADD B           ; A = x1 + x2
+    LXI H,0A05H     ; initialize address for the display
+    MOV M,A         ; far-left digit equal to x1 + x2
+    
+    SUB B           ; A = x2
+    CMP B           ; compare A (x2) to B (x1) to find greater
+    JC FIRST
+    SUB B           ; A = x2 - x1, if x2 > x1
+    JMP OUT
+FIRST:
+    MOV C,A         ; C = x2
+    MOV A,B         ; A = x1
+    SUB C           ; A = x1 - x2, if x1 > x2
+OUT:
+    LXI H,0A00H     ; initialize address for the display
+    MOV M,A         ; far-right digit equal to |x1 - x2|
+PRINT:
+    INX H           ; increment memory pointer
+    MVI M,10H       ; load the space symbol
+    INX H           ; increment memory pointer
+    MVI M,10H       ; load the space symbol
+    INX H           ; increment memory pointer
+    MVI M,10H       ; load the space symbol
+    INX H           ; increment memory pointer
+    MVI M,10H       ; load the space symbol
+
+    LXI D,0A00H     ; load D with the memory address
+    CALL STDM       ; call the routine to prepare the display
+    CALL DCD        ; output to the 7-segment displays
+    
+    JMP START       ; repeat
+END
