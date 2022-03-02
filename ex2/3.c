@@ -39,6 +39,6 @@ int main(void) {
     sei();                              // enable interrupts
 
     while(1) {                          // infinite loop
-        flag = 1;                       // just an operation
+        flag = 1                        // just an operation
     }
 }
