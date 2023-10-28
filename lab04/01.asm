@@ -89,6 +89,7 @@ correct_team:
 
 wrong_team:
 	ldi r22, 0x04				; initialize counter for 4 blinks
+
 led_blink:
     ori leds, 0x80				; turn PB7 on
     ldi r21, 0x0a				; initialize counter to 10 for delay
@@ -207,6 +208,7 @@ ISR_TIMER1_OVF:
 ; For Cx = 70 ppm we get ADC = 205.41 which rounds down to
 ; ADC = 205. So for ADC > 205 or ADC >= 206 we need to blink the 
 ; LEDs and print GAS DETECTED to the LCD Screen.
+
 ISR_ADC:
 	push r24					; push r24 to stack
 	push r25					; push r25 to stack
@@ -221,41 +223,52 @@ ISR_ADC:
 	cpi r24, 0x80				; compare r24 with threshold
 	brlo controller				; if r24 < 128, level is 0
 	rjmp level_one				; if r24 >= 128, level is 1
+
 two_plus:
 	cpi r25, 0x01				; check if r25 = 01 meaning ADC < 512
 	brne four_plus				; if it's not, then lowest level is 4
 	cpi r24, 0x80				; compare r24 with threshold
 	brlo level_two				; if r24 < 128, level is 2
 	rjmp level_three			; if r24 >= 128, level is 3
+
 four_plus:
 	cpi r25, 0x02				; check if r25 = 10 meaning ADC < 768
 	brne six_plus				; if it's not, then lowest level is 6
 	cpi r24, 0x80				; compare r24 with threshold
 	brlo level_four				; if r24 < 128, level is 4
 	rjmp level_five				; if r24 >= 128, level is 5
+
 six_plus:
 	cpi r24, 0x80				; compare r24 with threshold
 	brlo level_six				; if r24 < 128, level is 6
+
 level_seven:
 	ori leds, 0x7f				; turn on all 7 LEDs (PB0 to PB6)
 	rjmp controller
+
 level_six:
 	ori leds, 0x3f				; turn on 6 LEDs (PB0 to PB5)
 	rjmp controller
+
 level_five:
 	ori leds, 0x1f				; turn on 5 LEDs (PB0 to PB4)
 	rjmp controller
+
 level_four:
 	ori leds, 0x0f				; turn on 4 LEDs (PB0 to PB3)
 	rjmp controller
+
 level_three:
 	ori leds, 0x07				; turn on 3 LEDs (PB0 to PB2)
 	rjmp controller
+
 level_two:
 	ori leds, 0x03				; turn on 2 LEDs (PB0 and PB1)
 	rjmp controller
+
 level_one:
 	ori leds, 0x01				; turn on 1 LED (PB0)
+
 controller:
 	sbrc flags, 0				; if correct_team = 1 then expert
 	rjmp all_on					; team will enter, so don't alarm
@@ -264,6 +277,7 @@ controller:
 	brne gasly					; or Cx > 70, if yes go to gasly 
 	cpi r24, 0xce				; check if r24 >= 206 (r25 = 0)
 	brsh gasly					; or Cx > 70, if yes go to gasly
+
 tsunoda:	
 	sbrs flags, 1				; if gas_error = 0 then
 	rjmp all_on					; don't display clear
@@ -271,6 +285,7 @@ tsunoda:
 	andi flags, 0xfd			; else, set gas_error to 0
 	rcall clear					; display clear message
 	rjmp all_on
+
 gasly:
 	sbrc flags, 2				; if the blinker = 1
 	rjmp all_on					; turn all LEDs on
@@ -279,14 +294,17 @@ gasly:
 	rjmp only_pb7				; don't jump to output, first
 	ori flags, 0x02				; set gas_error to 1 and then
 	rcall gas					; display gas message
+
 only_pb7:
 	andi leds, 0x80				; keep only PB7
 	out PORTB, leds				; output only PB7
 	ori flags, 0x04				; set blinker to 1
 	rjmp exit
+
 all_on:
 	out PORTB, leds				; output PB7 + gas LEDs
 	andi flags, 0xfb			; set blinker to 0
+
 exit:
 	pop r26						; restore r26
 	pop r25						; restore r25
@@ -435,6 +453,7 @@ keypad_to_ascii_sim:
 	rjmp return_ascii
 	clr r24
 	rjmp return_ascii
+
 return_ascii:
 	pop r27                     ; επανάφερε τους καταχωρητές r27:r26
 	pop r26

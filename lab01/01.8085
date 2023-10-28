@@ -4,8 +4,10 @@ START:
     ANI 0FH         ; keep 4 LSBs
     INR A           ; increase A to store x+1
     MOV E,A         ; move x+1 to E
+
 RESTART:
     MVI A,00H       ; start counting upwards from 0
+
 UP:
     CALL MSBCHECK   ; call MSB check routine
     CMA             ; complement A because of LED's negative logic
@@ -16,6 +18,7 @@ UP:
     CMP E           ; compare A with x
     JNZ UP          ; if A is not equal(less) than x keep counting
     MOV A,E         ; keep 4 LSBs
+
 DOWN:
     CALL MSBCHECK   ; call MSB check routine
     DCR A           ; decrement A to count down
@@ -30,12 +33,15 @@ DOWN:
     INR A           ; increase A
     MOV E,A         ; move new x+1 to E
     JMP RESTART     ; restart the counting
+
 MSBCHECK:
     PUSH PSW        ; push A and flags
+
 LOOPER:
     LDA 2000H       ; read input
     RAL             ; rotate left to check MSB
     JNC LOOPER      ; if MSB is 0 repeat
     POP PSW         ; pop A and flags
     RET
+
 END

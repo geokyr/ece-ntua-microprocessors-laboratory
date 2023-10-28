@@ -8,6 +8,7 @@ START:
     CALL DELB       ; call the 0.5 second delay routine
     CALL MSBCHECK   ; call MSB check routine
     CALL WAITLSB    ; call wait LSB check routine
+
 TOLEFT:
     MOV A,D         ; restore A
     CPI 80H         ; compare with far-left position
@@ -24,6 +25,7 @@ TOLEFT:
     CPI 00H         ; compare with 0
     JNZ TOLEFT      ; if it's equal to 0 change direction
     CALL WAITLSB    ; call wait LSB check routine
+
 TORIGHT:
     MOV A,D         ; restore A
     CPI 01H         ; compare with far-right position
@@ -44,6 +46,7 @@ TORIGHT:
 
 MSBCHECK:
     PUSH PSW        ; push A and flags
+
 LOOPER:
     LDA 2000H       ; read input
     RAL             ; rotate left to check MSB
@@ -69,6 +72,7 @@ SWITCHL:
 
 WAITLSB:
     PUSH PSW        ; push A and the flags
+
 WAIT:
     CALL LSBCHECK   ; call LSB check routine
     MOV A,E         ; move LSB to A
@@ -76,4 +80,5 @@ WAIT:
     JZ WAIT         ; loop
     POP PSW         ; pop A and the flags
     RET
+
 END

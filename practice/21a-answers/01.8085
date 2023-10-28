@@ -1,4 +1,5 @@
     IN 10H
+
 START:              ; max value = 7 + 7 = 14 < FF
     CALL KIND       ; read x1 from the keyboard
     MOV B,A         ; B = x1
@@ -13,13 +14,16 @@ START:              ; max value = 7 + 7 = 14 < FF
     JC FIRST
     SUB B           ; A = x2 - x1, if x2 > x1
     JMP OUT
+
 FIRST:
     MOV C,A         ; C = x2
     MOV A,B         ; A = x1
     SUB C           ; A = x1 - x2, if x1 > x2
+
 OUT:
     LXI H,0A00H     ; initialize address for the display
     MOV M,A         ; far-right digit equal to |x1 - x2|
+
 PRINT:
     INX H           ; increment memory pointer
     MVI M,10H       ; load the space symbol
@@ -35,4 +39,5 @@ PRINT:
     CALL DCD        ; output to the 7-segment displays
     
     JMP START       ; repeat
+
 END

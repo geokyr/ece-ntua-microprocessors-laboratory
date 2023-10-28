@@ -264,6 +264,7 @@ keypad_to_ascii_sim:
 	rjmp return_ascii
 	clr r24
 	rjmp return_ascii
+
 return_ascii:
 	pop r27                     ; επανάφερε τους καταχωρητές r27:r26
 	pop r26

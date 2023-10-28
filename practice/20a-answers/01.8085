@@ -1,6 +1,6 @@
     IN 10H
-
     MVI C,00H       ; initialize C to 0
+
 START:
     LXI H,0A05H     ; initialize address for the display
     MVI M,10H       ; load the space symbol
@@ -18,14 +18,17 @@ START:
     CPI 0FH         
     JZ REDUCER      ; if x = F go to reducer
     JMP OUTPUT      ; else output x as is
+
 REDUCER:
     MOV A,C
     CPI 00H         
     JZ ZERO
     DCR A           ; if C != 0 then decrement by 1
     JMP OUTPUT
+
 ZERO:
     MVI A,0EH       ; if C = 0 then reset to E
+
 OUTPUT:
     MOV C,A         ; store counter to C
     MOV M,C         ; output the counter
@@ -34,4 +37,5 @@ OUTPUT:
     CALL DCD        ; output to the 7-segment displays
     
     JMP START       ; repeat
+
 END

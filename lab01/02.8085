@@ -1,4 +1,5 @@
     IN 10H
+
 START:              ; max value = 16*F + F = FF
     CALL KIND       ; read x from the keyboard
     CPI 00H         ; if x < 0 read again
@@ -18,6 +19,7 @@ START:              ; max value = 16*F + F = FF
     ADD B           ; A = 16*x + y
     LXI H,0A02H     ; initialize address for the displays
     MVI C,00H       ; initialize c to count hundreds
+
 DIV1:
     INR C           ; increment the hundreds counter
     SUI 64H         ; subtract 100 from A
@@ -26,6 +28,7 @@ DIV1:
     MOV M,C         ; store hundreds to 0A02H
     ADI 64H         ; add 100 back to restore A to get tens
     MVI C,00H       ; reset c to count tens
+
 DIV2:
     INR C           ; increment the tens counter
     SUI 0AH         ; subtract 10 from A
@@ -49,4 +52,5 @@ DIV2:
     CALL DCD        ; output to the 7-segment displays
     
     JMP START       ; repeat
+
 END

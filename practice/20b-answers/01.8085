@@ -1,4 +1,5 @@
     IN 10H
+
 START:
     CALL KIND       ; read x1 from the keyboard
     MOV B,A         ; B = x1 (0 <= x1 <= 5)
@@ -20,12 +21,14 @@ START:
 
     MOV A,B         ; A = x1
     LXI H,0A00H     ; initialize address for the display
+
 LOOPER:
     CPI 00H
     JZ STOP
     DCR A
     INX H
     JMP LOOPER
+
 STOP:
     MOV M,C
     LXI D,0A00H     ; load D with the memory address
@@ -33,6 +36,7 @@ STOP:
     CALL DCD        ; output to the 7-segment displays
     
     JMP START       ; repeat
+
 END
 
 ;====================================================================
@@ -46,6 +50,7 @@ START:
 	CALL KIND
 	MOV C,A ; kratame sto C thn timh tou X2
 	;MVI C,0AH
+
 LOOP1:
 	MOV A,B
 	CPI 00H ; meiwnoume to X1 enw pigainoume aristera sto 7 mexri ti swsti thesi
@@ -54,8 +59,10 @@ LOOP1:
 	INX H
 	DCR B
 	JMP LOOP1
+
 CONTINUE:
 	MOV M,C ; vazoume to x2 sth swsth thesi	
+
 LOOP2:
 	MOV A,L ; auksanoume to L mexri na gemisoun kai oi 6 theseis tou 7 seg
 	CPI 05H
@@ -63,8 +70,10 @@ LOOP2:
 	INX H
 	MVI M,10H
 	JMP LOOP2
+
 CONT:
 	CALL STDM
 	CALL DCD
 	JMP START
+
 END
