@@ -15,6 +15,8 @@ There were 5 lab assignments in total, each one consisting of a set of problems.
 - [Atmel AVR Studio 7](http://www.atmel.com/tools/ATMELSTUDIO.aspx) - Simulator for AVR microcontrollers
 - [EasyAVR6 + Flash programmer](https://www.mikroe.com/easyavr) - Drivers for the EasyAVR6 development board
 
+The access to the development board with the ATmega16 AVR Microcontroller was granted remotely, with the use of [X2Go](https://wiki.x2go.org/doku.php).
+
 The topics covered by each assignment follow.
 
 ## Lab 01
