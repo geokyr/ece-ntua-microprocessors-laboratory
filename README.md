@@ -1,4 +1,4 @@
-# ece-ntua-microprocessors-laboratory
+# microprocessors-laboratory
 
 Lab Assignments and Practice Problems for the [Microprocessors Laboratory](https://www.ece.ntua.gr/en/undergraduate/courses/3213) course, during the 7th semester of the School of Electrical and Computer Engineering at the National Technical University of Athens.
 
